@@ -159,21 +159,12 @@ export function calculateMainStackName(
 ): string {
   let result: string;
 
-  if (isRepoConfig(hostingConfiguration)) {
-    const parsedUrl = parseRepositoryUrl(
-      hostingConfiguration.repoUrl as string
-    );
-    const { repoName } = parsedUrl;
-    result = MAIN_STACK_NAME + "-" + repoName + "-" + hostingConfiguration.branchName;
-  } else {
-    result = hostingConfiguration.s3bucket;
-  }
-
-  result =  cleanStackNameStr(result);
 
 
 
-  return result;
+
+
+  return "qa-bokupna";
 }
 
 /**
@@ -411,82 +402,6 @@ export function getGitBranch(): string {
   }
 }
 
-/**
- * Detects the frontend framework utilized by examining the package.json file at the specified packagePath.
- * The function checks the presence of specific scripts and dependencies related to known frontend frameworks.
- * @param packagePath The path to the directory containing the package.json file to analyze.
- * @returns A Promise that resolves with the detected frontend framework (if found) or undefined if no recognized framework is detected.
- * If the package.json file is not found, it indicates that no frontend framework is used, and the return value will be FrontendFramework.NONE.
- */
-export async function detectFrontendFramework(
-  packagePath: string
-): Promise<string> {
-  const items = fs.readdirSync(packagePath);
-  const files = items.filter((item) => {
-    const itemPath = path.join(packagePath, item);
-    return fs.statSync(itemPath).isFile();
-  });
-
-  if (files.length === 0) {
-    return ""; // No files in the folder
-  }
-
-  if (!files.includes("package.json")) {
-    return FrontendFramework.BASIC;
-  }
-
-  const file = await fs.promises.readFile(`${packagePath}/package.json`);
-
-  const packageJson = JSON.parse(file.toString());
-
-  if (packageJson.scripts) {
-    const scriptValues = Object.values(packageJson.scripts);
-    if (
-      scriptValues.some(
-        (value: unknown) => typeof value == "string" && value.includes("vue")
-      )
-    ) {
-      return FrontendFramework.VUE;
-    }
-    if (
-      scriptValues.some(
-        (value: unknown) => typeof value == "string" && value.includes("next")
-      )
-    ) {
-      return FrontendFramework.NEXT;
-    }
-
-    if (
-      scriptValues.some(
-        (value: unknown) => typeof value == "string" && value.includes("ng")
-      )
-    ) {
-      return FrontendFramework.ANGULAR;
-    }
-
-  }
-  if (packageJson.dependencies) {
-    if (
-      "react" in packageJson.dependencies ||
-      "react" in packageJson.devDependencies
-    ) {
-      return FrontendFramework.REACT;
-    }
-    if (
-      "vue" in packageJson.dependencies ||
-      "vue" in packageJson.devDependencies
-    ) {
-      return FrontendFramework.VUE;
-    }
-    if (
-      "@angular/core" in packageJson.dependencies ||
-      "@angular/core" in packageJson.devDependencies
-    ) {
-      return FrontendFramework.ANGULAR;
-    }
-  }
-  return "";
-}
 
 /**
  * Reads and returns the configuration data from the build configuration file.
@@ -637,15 +552,7 @@ export async function executeCommands(
   outputStream.end();
 }
 
-/**
- * Checks if the given domain name starts with "www.".
- * @param domainName The domain name to check.
- * @returns A boolean value indicating whether the domainName starts with "www." (true) or not (false).
- */
-function checkWWW(domainName: string): boolean {
-  const regex = /^www\./;
-  return regex.test(domainName);
-}
+
 
 /**
  * Generates an array of domain names with and without "www." based on the given domainName.
@@ -655,11 +562,9 @@ function checkWWW(domainName: string): boolean {
  * @returns An array of strings containing the original domainName and an alternate version with "www." added or removed.
  */
 export function getDomainNames(domainName: string): string[] {
-  if (checkWWW(domainName)) {
-    return [domainName, domainName.replace("www.", "")];
-  } else {
-    return [domainName, "www." + domainName];
-  }
+
+    return [domainName];
+  
 }
 
 
@@ -772,20 +677,12 @@ export async function checkPipelineStatus() {
 
 export function isRepoConfig(
   config: HostingConfiguration
-): config is {
-  repoUrl: string;
-  branchName: string;
-  framework: string;
-} & CommonAttributes {
+)
+{
   return "repoUrl" in config && "branchName" in config && "framework" in config;
 }
 
-// Type guard for the S3 configuration
-export function isS3Config(
-  config: HostingConfiguration
-): config is { s3bucket: string; s3path: string } & CommonAttributes {
-  return "s3bucket" in config && "s3path" in config;
-}
+
 
 
 export function isValidBucketName(bucketName: string): boolean | string {

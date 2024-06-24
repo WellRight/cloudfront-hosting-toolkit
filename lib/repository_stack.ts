@@ -36,6 +36,8 @@ export class RepositoryStack extends Stack {
     super(scope, id, props);
 
     this.repositoryConnection = new RepositoryConnection(this, "RepositoryConnection", hostingConfiguration);
+
+    this.repositoryConnection.connectionArn= "arn:aws:codestar-connections:us-east-1:812501918422:connection/8bf22447-e2ca-4c43-a99f-9a304e7851f4";
     
   }
 }

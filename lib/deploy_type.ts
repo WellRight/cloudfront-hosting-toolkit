@@ -15,7 +15,7 @@
  */
 
 import { Construct } from "constructs";
-import { isRepoConfig, parseRepositoryUrl } from "../bin/cli/utils/helper";
+import { parseRepositoryUrl } from "../bin/cli/utils/helper";
 import { CfnOutput, Stack } from "aws-cdk-lib";
 import { HostingConfiguration } from "../bin/cli/shared/types";
 export class DeployType extends Construct {
@@ -36,7 +36,7 @@ export class DeployType extends Construct {
     //export function geteDeployIdentifier(stackConfig: IConfiguration) {
     super(scope, id);
 
-    if (isRepoConfig(hostingConfiguration)) {
+
       const repoUrl = hostingConfiguration.repoUrl;
       const parsedUrl = parseRepositoryUrl(repoUrl as string);
       this.deployIdentifier = parsedUrl.repoOwner + " - " + parsedUrl.repoName + "-" + Stack.of(this).region;
@@ -44,19 +44,5 @@ export class DeployType extends Construct {
       new CfnOutput(this, "Source", {
         value: hostingConfiguration.repoUrl,
       });
-    } else if (hostingConfiguration.s3bucket) {
-      this.deployIdentifier = hostingConfiguration.s3bucket;
-
-      new CfnOutput(this, "Source", {
-        value:
-          hostingConfiguration.s3bucket + "/" + hostingConfiguration.s3path,
-      });
-    } else {
-      console.log("Wrong configuration found. Exiting.");
-      console.log(
-        "Configuration found: " + JSON.stringify(hostingConfiguration)
-      );
-      process.exit(1);
-    }
   }
 }

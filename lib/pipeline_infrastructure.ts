@@ -35,8 +35,7 @@ import {
   Stack,
   CfnOutput,
 } from "aws-cdk-lib";
-
-import { calculateMainStackName, cleanActionNameStr, cleanBuildNameStr, cleanPipelineNameStr, isRepoConfig, isS3Config, parseRepositoryUrl } from "../bin/cli/utils/helper";
+import { calculateMainStackName, cleanActionNameStr, cleanBuildNameStr, cleanPipelineNameStr, parseRepositoryUrl } from "../bin/cli/utils/helper";
 
 import { Construct } from "constructs";
 import { IBucket } from "aws-cdk-lib/aws-s3";
@@ -73,25 +72,7 @@ export class PipelineInfrastructure extends Construct {
 
     var ssmCommitIdParam, ssmS3KeyParam;
 
-    if(isS3Config(params.hostingConfiguration)){
-    
-      const ssmCommitId = `/hosting/${params.hostingConfiguration.s3bucket}/buildId`;
-      const ssmSrcKey = `/hosting/${params.hostingConfiguration.s3bucket}/s3key`;
-
-      ssmCommitIdParam = new ssm.StringParameter(this, "CommitIdParam", {
-        parameterName: ssmCommitId,
-        stringValue: "init",
-        description: "Commit Id",
-        tier: ssm.ParameterTier.STANDARD,
-      });
-
-      ssmS3KeyParam = new ssm.StringParameter(this, "S3KeyParam", {
-        parameterName: ssmSrcKey,
-        stringValue: "init",
-        description: "S3 Key",
-      });
-    }
-
+   
     const deploymentWorkflowStepFunction = new DeploymentWorkflowStepFunction(this, "UpdateCFF", {
       changeUri: params.changeUri,
       kvsArn: params.kvsArn,
@@ -112,7 +93,6 @@ export class PipelineInfrastructure extends Construct {
     var stepFunctionInput = {};
     var codeBuildEnvVars;
     var s3upload;
-    if (isRepoConfig(params.hostingConfiguration)) {
       s3upload = new s3deploy.BucketDeployment(this, "InitialPage", {
         sources: [s3deploy.Source.asset(path.join(__dirname, "..", "resources/initial_repository"))],
         destinationBucket: params.hostingBucket,
@@ -139,11 +119,12 @@ export class PipelineInfrastructure extends Construct {
         repo: repoName,
         branch: params.hostingConfiguration.branchName,
         output: sourceOutput,
-        connectionArn: params.connectionArn!,
+        connectionArn:  params.connectionArn!,
       });
 
       stepFunctionInput = { commitId: sourceAction.variables.commitId };
-    } else if (params.hostingConfiguration.s3bucket) {
+  //  }
+    /* else if (params.hostingConfiguration.s3bucket) {
       //the pipeline is triggered from s3 bucket
 
       s3upload = new s3deploy.BucketDeployment(this, "InitialPage", {
@@ -297,10 +278,11 @@ export class PipelineInfrastructure extends Construct {
         actionName: "Dummy-S3-Source",
         trigger: S3Trigger.EVENTS,
       });
-    } else {
-      console.log("Missing required information. Exit.");
-      process.exit(1);
-    }
+     */
+//    else {
+ //     console.log("Missing required information. Exit.");
+ //     process.exit(1);
+ //   }
 
     const artifactBucket = new s3.Bucket(this, "ArtifactBucket", {
       encryption: s3.BucketEncryption.S3_MANAGED,
@@ -408,7 +390,7 @@ export class PipelineInfrastructure extends Construct {
         reason: "CloudWatch log group is always encrypted by default.",
       },
     ]);
-
+/*
     if (isS3Config(params.hostingConfiguration)) {
       myCodeBuild.addToRolePolicy(
         new iam.PolicyStatement({
@@ -422,7 +404,7 @@ export class PipelineInfrastructure extends Construct {
       );
       buildSrcBucket!.grantRead(myCodeBuild);
     }
-
+*/
     const deploy = new codepipeline_actions.CodeBuildAction({
       actionName: buildName,
       project: myCodeBuild,

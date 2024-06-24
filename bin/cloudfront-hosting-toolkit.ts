@@ -18,7 +18,8 @@ import "source-map-support/register";
 import { App } from "aws-cdk-lib";
 import { HostingStack } from "../lib/hosting_stack";
 import { RepositoryStack } from "../lib/repository_stack";
-
+import { HostingConfiguration } from  "./cli/shared/types";
+import { Console } from 'console';
 import * as path from "path";
 import {
   BUILD_FILE_NAME,
@@ -28,7 +29,7 @@ import {
 } from "./cli/shared/constants";
 import { AwsSolutionsChecks } from "cdk-nag";
 import { Aspects } from "aws-cdk-lib";
-import { calculateConnectionStackName, calculateMainStackName, isRepoConfig, loadHostingConfiguration } from "./cli/utils/helper";
+import { calculateConnectionStackName, calculateMainStackName, loadHostingConfiguration } from "./cli/utils/helper";
 
 const app = new App();
 
@@ -37,53 +38,54 @@ const app = new App();
 (async () => {
   var configFilePath, configFile, certificateArn;
 
+  /*
   if (app.node.tryGetContext("config-path")) {
     configFilePath = app.node.tryGetContext("config-path");
   }
    else {
     configFilePath = path.join(__dirname, "..", TOOL_NAME);
   }
-
-  
   if (app.node.tryGetContext("certificate-arn")) {
     certificateArn = app.node.tryGetContext("certificate-arn");
   }
+ */
+
+  
+
+  console.log("erererer");
+  
+  certificateArn = "arn:aws:acm:us-east-1:812501918422:certificate/a0399de6-0e57-4247-83bf-9a7ee403a9c9"
 
   configFile = configFilePath + "/" + CONFIG_FILE_NAME;
 
-  const hostingConfiguration = await loadHostingConfiguration(configFile);
+  const hostingConfiguration: HostingConfiguration = {
+    branchName : "master",
+    repoUrl: "https://github.com/WellRight/wellright.monoclient.git",
+    framework: "angularjs",
+    domainName : "hops2.qa.wellright.com"
 
-  const buildFilePath = configFilePath + "/" + BUILD_FILE_NAME;
+  } 
+  
+  ///await loadHostingConfiguration(configFile);
 
-  const cffSourceFilePath = configFilePath + "/" + CFF_FILE_NAME;
+  const buildFilePath =  "./cloudfront-hosting-toolkit/cloudfront-hosting-toolkit-build.yml";
+ const  cffSourceFilePath = "./cloudfront-hosting-toolkit/cloudfront-hosting-toolkit-cff.js";
 
-  var connectionStack;
+ // const buildFilePath = configFilePath + "/" + BUILD_FILE_NAME;
+ // const cffSourceFilePath = configFilePath + "/" + CFF_FILE_NAME;
+
+
 
   const mainStackName = calculateMainStackName(hostingConfiguration);
 
-  if (isRepoConfig(hostingConfiguration)) {
 
-    const connectionStackName = calculateConnectionStackName(hostingConfiguration.repoUrl, hostingConfiguration.branchName!);
-
-    connectionStack = new RepositoryStack(
-      app,
-      connectionStackName,
-      hostingConfiguration,
-      {
-        description: 'Cloudfront Hosting Toolkit Repository Stack',
-        env: {
-          region: process.env.CDK_DEFAULT_REGION,
-          account: process.env.CDK_DEFAULT_ACCOUNT,
-        },
-      }
-    );
-  }
+ //   const connectionStackName = calculateConnectionStackName(hostingConfiguration.repoUrl, hostingConfiguration.branchName);
 
   new HostingStack(
     app,
-    mainStackName,
+    "qa-bokupna",
     {
-      connectionArn: connectionStack?.repositoryConnection.connectionArn,
+      connectionArn: "arn:aws:codestar-connections:us-east-1:812501918422:connection/8bf22447-e2ca-4c43-a99f-9a304e7851f4",  //connectionStack?.repositoryConnection.connectionArn,
       hostingConfiguration: hostingConfiguration,
       buildFilePath: buildFilePath,
       cffSourceFilePath: cffSourceFilePath,

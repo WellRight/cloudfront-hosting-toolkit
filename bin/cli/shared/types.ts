@@ -26,28 +26,23 @@ export type CommonAttributes = {
   hostedZoneId?: string;
 };
 
-export type HostingConfiguration = (
-  {
+export interface HostingConfiguration {
+  
     repoUrl: string;
-    branchName: string;
-    framework: string;
-  } & CommonAttributes
-) | (
-  {
-    s3bucket: string;
-    s3path: string;
-  } & CommonAttributes
-);
+  branchName: string;
+  framework: string;
+  domainName: string;
+  }
 
-/*export interface IConfiguration {
-  repoUrl?: string;
-  branchName?: string;
+export interface IConfiguration {
+  repoUrl: string;
+  branchName: string;
   framework?: string;
   s3bucket?: string;
   s3path?: string;
   domainName?: string;
   hostedZoneId?: string;
-}*/
+}
 
     
 
